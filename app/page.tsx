@@ -65,23 +65,21 @@ function HoursFallback() {
 
 function Hero({ cafe }: { cafe: Cafe }) {
   return (
-    <header className="relative isolate">
-      <div className="relative h-72 w-full overflow-hidden bg-stone-800 sm:h-96">
-        {cafe.hero_image ? (
-          <Image
-            src={cafe.hero_image}
-            alt={cafe.name}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-        ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/10" />
-      </div>
-      <div className="mx-auto -mt-16 max-w-2xl px-5 text-center text-white sm:-mt-20">
+    <header className="relative isolate h-[26rem] w-full overflow-hidden bg-stone-800 sm:h-[32rem]">
+      {cafe.hero_image ? (
+        <Image
+          src={cafe.hero_image}
+          alt={cafe.name}
+          fill
+          priority
+          sizes="100vw"
+          className="-z-10 object-cover object-center"
+        />
+      ) : null}
+      <div className="absolute inset-0 -z-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-5 pb-10 text-center text-white">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{cafe.name}</h1>
-        {cafe.tagline && <p className="mt-2 text-lg text-stone-200">{cafe.tagline}</p>}
+        {cafe.tagline && <p className="mt-2 text-lg text-stone-100">{cafe.tagline}</p>}
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <a
             href="#menu"
@@ -94,7 +92,7 @@ function Hero({ cafe }: { cafe: Cafe }) {
               href={cafe.map_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full border border-white/70 px-6 py-3 font-semibold text-white hover:bg-white/10"
+              className="rounded-full border border-white/80 px-6 py-3 font-semibold text-white hover:bg-white/10"
             >
               Get directions
             </a>
