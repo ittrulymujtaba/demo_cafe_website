@@ -3,23 +3,22 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import {
   activeSpecial,
+  CAFE_SLUG,
   getCafe,
   openStatus,
   WEEKDAY_NAMES,
   type Cafe,
 } from "@/lib/cafe";
 
-// The demo café. Once there are multiple cafés, this comes from the request's host or path.
-const CAFE_SLUG = "westward-coffee";
-
 // Everything here is prerendered and cached (see getCafe). Only the parts that depend on
 // the current time sit behind Suspense: the specials banner and the open/closed status.
+// Those run per request, so "Open now" is always worked out for the café's own timezone (NZ).
 export default async function Home() {
   const cafe = await getCafe(CAFE_SLUG);
   if (!cafe) {
     return (
       <main className="p-8 text-center">
-        <h1 className="text-xl font-semibold">Café not found</h1>
+        <h1 className="text-2xl font-semibold">Café not found</h1>
       </main>
     );
   }
@@ -49,7 +48,7 @@ async function SpecialBanner({ cafe }: { cafe: Cafe }) {
   const special = activeSpecial(cafe);
   if (!special) return null;
   return (
-    <div className="bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900">
+    <div className="bg-latte px-4 py-2 text-center text-sm font-medium text-espresso">
       {special.text}
     </div>
   );
@@ -57,15 +56,15 @@ async function SpecialBanner({ cafe }: { cafe: Cafe }) {
 
 function HoursFallback() {
   return (
-    <section className="mx-auto max-w-2xl px-5 py-10">
-      <h2 className="text-2xl font-semibold">Hours & location</h2>
+    <section className="mx-auto max-w-2xl px-5 py-12">
+      <h2 className="text-3xl font-semibold">Hours &amp; location</h2>
     </section>
   );
 }
 
 function Hero({ cafe }: { cafe: Cafe }) {
   return (
-    <header className="relative isolate h-[26rem] w-full overflow-hidden bg-stone-800 sm:h-[32rem]">
+    <header className="relative isolate h-[28rem] w-full overflow-hidden bg-espresso sm:h-[34rem]">
       {cafe.hero_image ? (
         <Image
           src={cafe.hero_image}
@@ -76,14 +75,15 @@ function Hero({ cafe }: { cafe: Cafe }) {
           className="-z-10 object-cover object-center"
         />
       ) : null}
-      <div className="absolute inset-0 -z-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-5 pb-10 text-center text-white">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{cafe.name}</h1>
-        {cafe.tagline && <p className="mt-2 text-lg text-stone-100">{cafe.tagline}</p>}
-        <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+      <div className="absolute inset-0 bg-gradient-to-t from-espresso/90 via-espresso/30 to-espresso/10" />
+      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-5 pb-12 text-center text-cream">
+        <p className="text-sm font-medium uppercase tracking-[0.2em] text-latte">West Auckland</p>
+        <h1 className="mt-2 text-5xl font-semibold leading-tight sm:text-6xl">{cafe.name}</h1>
+        {cafe.tagline && <p className="mt-3 text-lg text-latte">{cafe.tagline}</p>}
+        <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <a
             href="#menu"
-            className="rounded-full bg-white px-6 py-3 font-semibold text-stone-900 hover:bg-stone-100"
+            className="rounded-full bg-coffee px-7 py-3 font-semibold text-cream shadow-lg hover:bg-espresso"
           >
             View menu
           </a>
@@ -92,7 +92,7 @@ function Hero({ cafe }: { cafe: Cafe }) {
               href={cafe.map_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full border border-white/80 px-6 py-3 font-semibold text-white hover:bg-white/10"
+              className="rounded-full border border-cream/70 px-7 py-3 font-semibold text-cream hover:bg-cream/10"
             >
               Get directions
             </a>
@@ -111,14 +111,12 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
   const ordered = [...hours.filter((h) => h.weekday !== 0), ...hours.filter((h) => h.weekday === 0)];
 
   return (
-    <section className="mx-auto max-w-2xl px-5 py-10">
+    <section className="mx-auto max-w-2xl px-5 py-12">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-2xl font-semibold">Hours & location</h2>
+        <h2 className="text-3xl font-semibold">Hours &amp; location</h2>
         <span
           className={`rounded-full px-3 py-1 text-sm font-semibold ${
-            status.label === "Open now"
-              ? "bg-emerald-100 text-emerald-800"
-              : "bg-stone-200 text-stone-700"
+            status.label === "Open now" ? "bg-coffee text-cream" : "bg-latte text-espresso/70"
           }`}
         >
           {status.label}
@@ -126,14 +124,14 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
         </span>
       </div>
 
-      <ul className="mt-4 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+      <ul className="mt-5 divide-y divide-espresso/10 overflow-hidden rounded-2xl border border-espresso/10 bg-white/60">
         {ordered.map((h) => {
           const isToday = h.weekday === status.today;
           return (
             <li
               key={h.weekday}
-              className={`flex justify-between px-4 py-2 text-sm ${
-                isToday ? "bg-amber-50 font-semibold" : ""
+              className={`flex justify-between px-4 py-3 text-sm ${
+                isToday ? "bg-latte font-semibold" : ""
               }`}
             >
               <span>{WEEKDAY_NAMES[h.weekday]}</span>
@@ -147,8 +145,8 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
         })}
       </ul>
 
-      {cafe.special_dates.length > 0 && (
-        <div className="mt-4 text-sm text-stone-600">
+      {cafe.special_dates.some((d) => d.closed) && (
+        <div className="mt-4 text-sm text-espresso/70">
           {cafe.special_dates
             .filter((d) => d.closed)
             .map((d) => (
@@ -160,13 +158,13 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
         </div>
       )}
 
-      {cafe.address && <p className="mt-6 text-stone-700">{cafe.address}</p>}
+      {cafe.address && <p className="mt-6 text-lg">{cafe.address}</p>}
 
       <div className="mt-4 flex flex-wrap gap-3">
         {cafe.phone && (
           <a
             href={`tel:${cafe.phone.replace(/\s+/g, "")}`}
-            className="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white"
+            className="rounded-full bg-coffee px-5 py-2.5 text-sm font-semibold text-cream"
           >
             Call {cafe.phone}
           </a>
@@ -176,7 +174,7 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
             href={cafe.map_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold"
+            className="rounded-full border border-coffee px-5 py-2.5 text-sm font-semibold text-coffee"
           >
             Directions
           </a>
@@ -184,12 +182,13 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
       </div>
 
       {cafe.address && (
+        // Centred on the wider area at a zoom that shows the suburb, not a pin on a real building.
         <iframe
-          title={`Map of ${cafe.name}`}
-          className="mt-6 h-64 w-full rounded-xl border-0"
+          title={`Map of the area around ${cafe.name}`}
+          className="mt-6 h-64 w-full rounded-2xl border-0"
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          src={`https://maps.google.com/maps?q=${encodeURIComponent(cafe.address)}&output=embed`}
+          src={`https://maps.google.com/maps?q=${encodeURIComponent(cafe.address)}&z=12&output=embed`}
         />
       )}
     </section>
@@ -198,33 +197,41 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
 
 function Menu({ cafe }: { cafe: Cafe }) {
   return (
-    <section id="menu" className="bg-stone-100 px-5 py-10">
+    <section id="menu" className="bg-latte/60 px-5 py-14">
       <div className="mx-auto max-w-2xl">
-        <h2 className="text-2xl font-semibold">Menu</h2>
-        {cafe.menu_sections.map((section) => (
-          <div key={section.id} className="mt-6">
-            <h3 className="border-b border-stone-300 pb-1 text-sm font-semibold uppercase tracking-wide text-stone-500">
+        <h2 className="text-3xl font-semibold">Menu</h2>
+        <div className="mt-2 flex flex-wrap gap-2 text-sm">
+          {cafe.menu_sections.map((section) => (
+            <a key={section.id} href={`#section-${section.id}`} className="text-coffee underline-offset-4 hover:underline">
               {section.name}
-            </h3>
-            <ul className="mt-2 space-y-3">
+            </a>
+          ))}
+        </div>
+
+        {cafe.menu_sections.map((section) => (
+          <div key={section.id} id={`section-${section.id}`} className="mt-10 scroll-mt-6">
+            <h3 className="font-display text-2xl font-semibold text-coffee">{section.name}</h3>
+            <ul className="mt-4 space-y-5">
               {section.menu_items.map((item) => (
                 <li
                   key={item.id}
-                  className={`flex justify-between gap-4 ${item.sold_out ? "text-stone-400" : ""}`}
+                  className={`flex justify-between gap-4 ${item.sold_out ? "opacity-50" : ""}`}
                 >
                   <div>
                     <p className={`font-medium ${item.sold_out ? "line-through" : ""}`}>
                       {item.name}
                       {item.sold_out && (
-                        <span className="ml-2 text-xs font-normal no-underline">Sold out</span>
+                        <span className="ml-2 text-xs font-semibold uppercase tracking-wide text-terracotta no-underline">
+                          Sold out
+                        </span>
                       )}
                     </p>
                     {item.description && (
-                      <p className="text-sm text-stone-500">{item.description}</p>
+                      <p className="mt-0.5 text-sm text-espresso/65">{item.description}</p>
                     )}
                   </div>
                   {item.price !== null && (
-                    <p className="whitespace-nowrap font-medium">${item.price.toFixed(2)}</p>
+                    <p className="whitespace-nowrap font-medium text-coffee">${item.price.toFixed(2)}</p>
                   )}
                 </li>
               ))}
@@ -239,9 +246,9 @@ function Menu({ cafe }: { cafe: Cafe }) {
 function About({ cafe }: { cafe: Cafe }) {
   if (!cafe.about) return null;
   return (
-    <section className="mx-auto max-w-2xl px-5 py-10">
-      <h2 className="text-2xl font-semibold">About</h2>
-      <p className="mt-3 leading-relaxed text-stone-700">{cafe.about}</p>
+    <section className="mx-auto max-w-2xl px-5 py-14">
+      <h2 className="text-3xl font-semibold">About</h2>
+      <p className="mt-4 text-lg leading-relaxed text-espresso/80">{cafe.about}</p>
     </section>
   );
 }
@@ -249,11 +256,11 @@ function About({ cafe }: { cafe: Cafe }) {
 function Gallery({ cafe }: { cafe: Cafe }) {
   if (cafe.gallery_images.length === 0) return null;
   return (
-    <section className="mx-auto max-w-2xl px-5 pb-10">
-      <h2 className="text-2xl font-semibold">Gallery</h2>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <section className="mx-auto max-w-2xl px-5 pb-14">
+      <h2 className="text-3xl font-semibold">Gallery</h2>
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {cafe.gallery_images.map((img) => (
-          <div key={img.id} className="relative aspect-square overflow-hidden rounded-lg bg-stone-200">
+          <div key={img.id} className="relative aspect-square overflow-hidden rounded-2xl bg-latte">
             <Image
               src={img.url}
               alt=""
@@ -275,13 +282,13 @@ function Footer({ cafe }: { cafe: Cafe }) {
   ].filter((l): l is { label: string; href: string } => Boolean(l.href));
 
   return (
-    <footer className="bg-stone-900 px-5 py-8 text-center text-sm text-stone-300">
-      <p className="font-semibold text-white">{cafe.name}</p>
+    <footer className="bg-espresso px-5 py-10 text-center text-sm text-cream/80">
+      <p className="font-display text-xl font-semibold text-cream">{cafe.name}</p>
       {cafe.address && <p className="mt-1">{cafe.address}</p>}
       {links.length > 0 && (
-        <nav className="mt-3 flex justify-center gap-4">
+        <nav className="mt-4 flex justify-center gap-5">
           {links.map((l) => (
-            <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="underline">
+            <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
               {l.label}
             </a>
           ))}

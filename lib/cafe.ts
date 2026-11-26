@@ -1,6 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 
+// The demo café. Once there are multiple cafés, this comes from the request's host or path.
+export const CAFE_SLUG = "westward-coffee";
+
 // Public, read-only client. Row-level security lets anyone read; writes need an admin login.
 export function publicSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Café palette: cream paper, espresso text, coffee-brown accent, terracotta for warnings. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: #f6efe2;
+  --color-latte: #ebdcc4;
+  --color-espresso: #2e1f16;
+  --color-coffee: #6f4a2e;
+  --color-terracotta: #b5573a;
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-dm-sans);
 }
 
-/* Light theme only. The café brand sets its own colours in the components. */
+/* Light theme only, whatever the device's dark-mode setting. */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), Georgia, serif;
 }
