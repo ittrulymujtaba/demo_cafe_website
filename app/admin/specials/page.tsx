@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
+import SaveButton from "@/components/save-button";
 import { adminButton, adminInput, AdminNav, NoAccess } from "@/components/admin-nav";
 import { requireAdmin } from "@/lib/admin-auth";
 import { saveSpecial } from "../content-actions";
@@ -59,9 +60,7 @@ async function SpecialsEditor() {
         <p className="text-xs text-espresso/60">
           Leave both dates empty to show it until you change it. Dates use New Zealand time.
         </p>
-        <button type="submit" className={adminButton}>
-          Save banner
-        </button>
+        <SaveButton label="Save banner" className={adminButton} />
       </form>
     </>
   );

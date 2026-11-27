@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
+import SaveButton from "@/components/save-button";
 import { adminButton, adminInput, AdminNav, NoAccess } from "@/components/admin-nav";
 import { requireAdmin } from "@/lib/admin-auth";
 import { saveDetails } from "../content-actions";
@@ -52,9 +53,7 @@ async function DetailsEditor() {
       <Field label="Instagram link" name="instagram_url" defaultValue={cafe.instagram_url ?? ""} />
       <Field label="Facebook link" name="facebook_url" defaultValue={cafe.facebook_url ?? ""} />
 
-      <button type="submit" className={adminButton}>
-        Save details
-      </button>
+      <SaveButton label="Save details" className={adminButton} />
     </form>
   );
 }

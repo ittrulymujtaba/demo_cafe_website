@@ -1,28 +1,8 @@
-import Link from "next/link";
+import AdminTabs from "@/components/admin-tabs";
 
-const links = [
-  { href: "/admin", label: "Menu" },
-  { href: "/admin/hours", label: "Hours" },
-  { href: "/admin/specials", label: "Specials" },
-  { href: "/admin/details", label: "Details" },
-  { href: "/admin/photos", label: "Photos" },
-];
-
-// Section tabs shown at the top of every admin page. Wraps on small screens.
+// Section tabs shown at the top of every admin page. The active tab is highlighted.
 export function AdminNav() {
-  return (
-    <nav className="-mx-1 mt-4 flex flex-wrap gap-2 text-sm">
-      {links.map((l) => (
-        <Link
-          key={l.href}
-          href={l.href}
-          className="rounded-full border border-espresso/20 bg-white/70 px-3 py-1.5 font-medium hover:bg-latte"
-        >
-          {l.label}
-        </Link>
-      ))}
-    </nav>
-  );
+  return <AdminTabs />;
 }
 
 export function NoAccess() {

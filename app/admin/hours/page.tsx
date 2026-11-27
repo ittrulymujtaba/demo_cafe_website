@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import ConfirmSubmit from "@/components/confirm-submit";
+import DayHours from "@/components/day-hours";
+import SaveButton from "@/components/save-button";
 import { adminButton, adminDangerButton, adminInput, AdminNav, NoAccess } from "@/components/admin-nav";
 import { requireAdmin } from "@/lib/admin-auth";
 import { WEEKDAY_NAMES } from "@/lib/cafe";
@@ -40,38 +42,18 @@ async function HoursEditor() {
         <form action={saveHours} className="mt-4 space-y-3">
           {order.map((d) => {
             const h = byDay.get(d);
-            const closed = h?.closed ?? true;
             return (
-              <div key={d} className="grid grid-cols-[5.5rem_1fr] items-center gap-3 rounded-xl bg-white/60 p-3">
-                <div>
-                  <p className="font-medium">{WEEKDAY_NAMES[d]}</p>
-                  <label className="mt-1 flex items-center gap-2 text-sm">
-                    <input type="checkbox" name={`closed_${d}`} defaultChecked={closed} className="h-4 w-4" />
-                    Closed
-                  </label>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="time"
-                    name={`opens_${d}`}
-                    defaultValue={h?.opens?.slice(0, 5) ?? "07:30"}
-                    aria-label={`${WEEKDAY_NAMES[d]} opens`}
-                    className={adminInput}
-                  />
-                  <input
-                    type="time"
-                    name={`closes_${d}`}
-                    defaultValue={h?.closes?.slice(0, 5) ?? "15:00"}
-                    aria-label={`${WEEKDAY_NAMES[d]} closes`}
-                    className={adminInput}
-                  />
-                </div>
-              </div>
+              <DayHours
+                key={d}
+                weekday={d}
+                label={WEEKDAY_NAMES[d]}
+                closed={h?.closed ?? true}
+                opens={h?.opens?.slice(0, 5) ?? "07:30"}
+                closes={h?.closes?.slice(0, 5) ?? "15:00"}
+              />
             );
           })}
-          <button type="submit" className={adminButton}>
-            Save hours
-          </button>
+          <SaveButton label="Save hours" className={adminButton} />
         </form>
       </section>
 
@@ -118,9 +100,7 @@ async function HoursEditor() {
             Closed all day
           </label>
           <div>
-            <button type="submit" className={adminButton}>
-              Add closure
-            </button>
+            <SaveButton label="Add closure" className={adminButton} />
           </div>
         </form>
       </section>

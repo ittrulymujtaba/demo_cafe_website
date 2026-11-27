@@ -2,6 +2,8 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import ConfirmSubmit from "@/components/confirm-submit";
+import FilePicker from "@/components/file-picker";
+import SaveButton from "@/components/save-button";
 import { adminButton, adminDangerButton, AdminNav, NoAccess } from "@/components/admin-nav";
 import { requireAdmin } from "@/lib/admin-auth";
 import { addGalleryPhoto, deleteGalleryPhoto, setHeroPhoto } from "../content-actions";
@@ -31,6 +33,8 @@ async function PhotosEditor() {
   if (!cafe) return <NoAccess />;
 
   const gallery = [...(cafe.gallery_images ?? [])].sort((a, b) => a.position - b.position);
+  // The hero photo shouldn't also appear in the gallery.
+  const heroRepeated = !!cafe.hero_image && gallery.some((g) => g.url === cafe.hero_image);
 
   return (
     <>
@@ -48,17 +52,23 @@ async function PhotosEditor() {
           )}
         </div>
 
-        <form action={setHeroPhoto} className="mt-4 flex flex-wrap items-center gap-3">
-          <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required className="text-sm" />
-          <button type="submit" className={adminButton}>
-            Replace hero photo
-          </button>
+        <form action={setHeroPhoto} className="mt-4 flex flex-col gap-3">
+          <FilePicker name="photo" accept="image/jpeg,image/png,image/webp" buttonLabel="Choose hero photo" required />
+          <div>
+            <SaveButton label="Upload hero photo" savedLabel="Hero updated ✓" className={adminButton} />
+          </div>
         </form>
       </section>
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-semibold">Gallery</h2>
         <p className="mt-1 text-sm text-espresso/70">Shown as a grid near the bottom of the page.</p>
+
+        {heroRepeated && (
+          <p className="mt-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-sm text-espresso">
+            One gallery photo is the same as the hero photo. Remove it and add a different one.
+          </p>
+        )}
 
         <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {gallery.map((img, i) => (
@@ -77,11 +87,11 @@ async function PhotosEditor() {
           ))}
         </ul>
 
-        <form action={addGalleryPhoto} className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-espresso/30 p-4">
-          <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required className="text-sm" />
-          <button type="submit" className={adminButton}>
-            Add to gallery
-          </button>
+        <form action={addGalleryPhoto} className="mt-4 flex flex-col gap-3 rounded-xl border border-dashed border-espresso/30 p-4">
+          <FilePicker name="photo" accept="image/jpeg,image/png,image/webp" buttonLabel="Choose photo" required />
+          <div>
+            <SaveButton label="Add to gallery" savedLabel="Photo added ✓" className={adminButton} />
+          </div>
         </form>
         <p className="mt-2 text-xs text-espresso/60">JPG, PNG or WebP, up to 50 MB each.</p>
       </section>
