@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import ConfirmSubmit from "@/components/confirm-submit";
+import { AdminNav } from "@/components/admin-nav";
+import AutoSaveForm from "@/components/auto-save-form";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
   addItem,
@@ -95,22 +97,40 @@ async function AdminEditor() {
         </div>
       </header>
 
+      <AdminNav />
+
+      {/* Jump straight to a section instead of scrolling through all of them. */}
+      <nav className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+        {sections.map((s) => (
+          <a key={s.id} href={`#admin-section-${s.id}`} className="text-coffee underline-offset-4 hover:underline">
+            {s.name}
+          </a>
+        ))}
+      </nav>
+
       <p className="mt-4 text-sm text-espresso/70">
-        Changes go live on the website within a few seconds.
+        Edits save automatically when you tap away from a field. Changes go live on the website within a few seconds.
       </p>
 
       <div className="mt-6 space-y-8">
         {sections.map((section, sIdx) => (
-          <section key={section.id} className="rounded-2xl border border-espresso/10 bg-white/60 p-4">
+          <details
+            key={section.id}
+            id={`admin-section-${section.id}`}
+            open
+            className="scroll-mt-4 rounded-2xl border border-espresso/10 bg-white/60 p-4"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-display text-xl font-semibold">
+              <span>{section.name}</span>
+              <span className="text-sm font-normal text-espresso/60">{section.menu_items.length} items</span>
+            </summary>
+
             {/* Section header: rename, reorder, delete */}
-            <div className="flex flex-wrap items-center gap-2">
-              <form action={renameSection} className="flex flex-1 gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <AutoSaveForm action={renameSection} className="flex flex-1 gap-2">
                 <input type="hidden" name="id" value={section.id} />
                 <input name="name" defaultValue={section.name} className={input} aria-label="Section name" />
-                <button type="submit" className={smallButton}>
-                  Save
-                </button>
-              </form>
+              </AutoSaveForm>
               <form action={moveSection}>
                 <input type="hidden" name="id" value={section.id} />
                 <button name="dir" value="up" disabled={sIdx === 0} className={smallButton} aria-label="Move section up">
@@ -144,7 +164,7 @@ async function AdminEditor() {
             <ul className="mt-4 space-y-4">
               {section.menu_items.map((item, iIdx) => (
                 <li key={item.id} className="border-t border-espresso/10 pt-4">
-                  <form action={saveItem} className="grid grid-cols-[1fr_6rem] gap-2">
+                  <AutoSaveForm action={saveItem} className="grid grid-cols-[1fr_6rem] gap-2">
                     <input type="hidden" name="id" value={item.id} />
                     <input name="name" defaultValue={item.name} className={input} aria-label="Item name" />
                     <input
@@ -162,12 +182,8 @@ async function AdminEditor() {
                       className={`${input} col-span-2`}
                       aria-label="Description"
                     />
-                    <div className="col-span-2 flex flex-wrap items-center gap-2">
-                      <button type="submit" className={primaryButton}>
-                        Save item
-                      </button>
-                    </div>
-                  </form>
+                    <p className="col-span-2 text-xs text-espresso/50">Saves when you tap away.</p>
+                  </AutoSaveForm>
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <form action={toggleSoldOut}>
@@ -223,7 +239,7 @@ async function AdminEditor() {
                 </button>
               </div>
             </form>
-          </section>
+          </details>
         ))}
       </div>
 

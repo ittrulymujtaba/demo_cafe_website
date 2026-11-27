@@ -6,7 +6,7 @@
 -- The nightly reset job can run this same file.
 
 insert into cafes (slug, name, tagline, about, phone, address, map_url,
-                   instagram_url, facebook_url, timezone)
+                   instagram_url, facebook_url, timezone, is_demo)
 values (
   'westward-coffee',
   'Westward Coffee',
@@ -17,7 +17,8 @@ values (
   'https://maps.google.com/?q=West+Auckland+New+Zealand',
   'https://instagram.com/westwardcoffee',
   'https://facebook.com/westwardcoffee',
-  'Pacific/Auckland'
+  'Pacific/Auckland',
+  true
 )
 on conflict (slug) do update set
   name = excluded.name,
@@ -28,7 +29,8 @@ on conflict (slug) do update set
   map_url = excluded.map_url,
   instagram_url = excluded.instagram_url,
   facebook_url = excluded.facebook_url,
-  timezone = excluded.timezone;
+  timezone = excluded.timezone,
+  is_demo = excluded.is_demo;
 
 -- Replace the menu, hours and specials with the demo versions.
 delete from menu_sections where cafe_id = (select id from cafes where slug = 'westward-coffee');

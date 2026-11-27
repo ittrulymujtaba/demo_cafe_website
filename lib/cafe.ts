@@ -56,6 +56,7 @@ export type Cafe = {
   facebook_url: string | null;
   hero_image: string | null;
   timezone: string;
+  is_demo: boolean;
   menu_sections: MenuSection[];
   opening_hours: OpeningHour[];
   special_dates: SpecialDate[];

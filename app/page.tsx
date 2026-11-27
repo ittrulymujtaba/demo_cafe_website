@@ -160,8 +160,14 @@ async function HoursAndLocation({ cafe }: { cafe: Cafe }) {
 
       {cafe.address && <p className="mt-6 text-lg">{cafe.address}</p>}
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        {cafe.phone && (
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        {cafe.phone && cafe.is_demo && (
+          // Demo cafés use a fictional number, so the call button is replaced with a note.
+          <p className="rounded-full bg-latte px-5 py-2.5 text-sm text-espresso/80">
+            Demo number, not connected. A real café&apos;s &ldquo;Call&rdquo; button goes straight to the owner.
+          </p>
+        )}
+        {cafe.phone && !cafe.is_demo && (
           <a
             href={`tel:${cafe.phone.replace(/\s+/g, "")}`}
             className="rounded-full bg-coffee px-5 py-2.5 text-sm font-semibold text-cream"
