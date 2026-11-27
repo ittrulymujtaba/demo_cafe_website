@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, type FocusEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
 type Action = (formData: FormData) => void | Promise<void>;
+type Field = HTMLInputElement | HTMLTextAreaElement;
 
-// A form that saves itself when focus leaves it, so changing three prices and tapping
-// away from each one saves all three. It also warns before leaving the page with unsaved edits.
+// Saves a second after the owner stops typing.
+const AUTO_SAVE_DELAY_MS = 1000;
+
+// A form that saves on its own. Each field saves when it loses focus, so tabbing from the
+// price to the description saves the price. It also saves about a second after typing stops,
+// and warns before leaving the page with unsaved edits.
 export default function AutoSaveForm({
   action,
   className,
@@ -17,42 +22,53 @@ export default function AutoSaveForm({
   children: ReactNode;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dirty, setDirty] = useState(false);
 
-  // Dirty = any field differs from the value the server last sent.
-  function isDirty() {
-    const form = formRef.current;
-    if (!form) return false;
-    return Array.from(
-      form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input[name], textarea[name]"),
-    ).some((el) => el.value !== el.defaultValue);
+  function fields(): Field[] {
+    return Array.from(formRef.current?.querySelectorAll<Field>("input[name], textarea[name]") ?? []);
   }
 
-  // After a successful save, make the current values the new baseline.
-  function markClean() {
-    formRef.current
-      ?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input[name], textarea[name]")
-      .forEach((el) => {
-        el.defaultValue = el.value;
-      });
-    setDirty(false);
+  // Dirty = a field differs from the value the server last sent.
+  function isDirty() {
+    return fields().some((el) => el.value !== el.defaultValue);
+  }
+
+  function cancelTimer() {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }
+
+  // Save anything that has changed. Safe to call when nothing has changed.
+  function saveNow() {
+    cancelTimer();
+    if (isDirty()) formRef.current?.requestSubmit();
   }
 
   async function save(formData: FormData) {
+    // Remember what was sent, so anything typed while the save runs stays marked as unsaved.
+    const sent = fields().map((el) => [el, el.value] as const);
     await action(formData);
-    markClean();
-  }
-
-  // Leaving the whole form (not just moving between its fields) triggers a save.
-  function onBlur(e: FocusEvent<HTMLFormElement>) {
-    if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as Node)) return;
-    if (isDirty()) formRef.current?.requestSubmit();
-    setDirty(false);
+    sent.forEach(([el, value]) => {
+      el.defaultValue = value;
+    });
+    setDirty(isDirty());
   }
 
   function onInput() {
     setDirty(isDirty());
+    cancelTimer();
+    timer.current = setTimeout(saveNow, AUTO_SAVE_DELAY_MS);
   }
+
+  // Fires when focus leaves any field, so every field saves on its own.
+  function onBlur() {
+    saveNow();
+  }
+
+  useEffect(() => cancelTimer, []);
 
   useEffect(() => {
     if (!dirty) return;
@@ -91,8 +107,8 @@ function SaveStatus() {
     if (!wasPending.current) return;
     wasPending.current = false;
     setSaved(true);
-    const timer = setTimeout(() => setSaved(false), 2000);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setSaved(false), 2000);
+    return () => clearTimeout(t);
   }, [pending]);
 
   if (pending) return <span className="text-xs text-espresso/60">Saving…</span>;

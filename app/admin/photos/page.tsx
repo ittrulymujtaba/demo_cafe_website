@@ -33,8 +33,6 @@ async function PhotosEditor() {
   if (!cafe) return <NoAccess />;
 
   const gallery = [...(cafe.gallery_images ?? [])].sort((a, b) => a.position - b.position);
-  // The hero photo shouldn't also appear in the gallery.
-  const heroRepeated = !!cafe.hero_image && gallery.some((g) => g.url === cafe.hero_image);
 
   return (
     <>
@@ -67,12 +65,6 @@ async function PhotosEditor() {
       <section className="mt-10">
         <h2 className="font-display text-xl font-semibold">Gallery</h2>
         <p className="mt-1 text-sm text-espresso/70">Shown as a grid near the bottom of the page.</p>
-
-        {heroRepeated && (
-          <p className="mt-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-sm text-espresso">
-            One gallery photo is the same as the hero photo. Remove it and add a different one.
-          </p>
-        )}
 
         <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {gallery.map((img, i) => (

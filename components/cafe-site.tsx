@@ -31,7 +31,8 @@ export default async function CafeSite({ slug }: { slug: string }) {
         </div>
       )}
 
-      <Suspense fallback={null}>
+      {/* Reserve the banner's height while it loads, so the page doesn't jump. */}
+      <Suspense fallback={cafe.specials.length > 0 ? <div className="h-9 bg-latte/60" /> : null}>
         <SpecialBanner cafe={cafe} />
       </Suspense>
 
@@ -60,10 +61,15 @@ async function SpecialBanner({ cafe }: { cafe: Cafe }) {
   );
 }
 
+// Same heights as the real hours section, so the page doesn't jump when the hours load.
 function HoursFallback() {
   return (
     <section className="mx-auto max-w-2xl px-5 py-12">
       <h2 className="text-3xl font-semibold">Hours &amp; location</h2>
+      <div className="mt-5 h-[20rem] rounded-2xl border border-espresso/10 bg-white/60" />
+      <div className="mt-6 h-7" />
+      <div className="mt-4 h-10" />
+      <div className="mt-6 h-64 rounded-2xl bg-latte/40" />
     </section>
   );
 }
