@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
-import { requireAdmin } from "@/lib/admin-auth";
-import { CAFE_SLUG } from "@/lib/cafe";
+import { DEMO_SLUG, requireAdmin } from "@/lib/admin-auth";
+import { clip } from "@/lib/limits";
 
 const BUCKET = "cafe-photos";
 const MAX_PHOTO_BYTES = 50 * 1024 * 1024; // Supabase's default per-file cap on the free plan
@@ -21,7 +21,7 @@ function fail(message: string): never {
 }
 
 function publish() {
-  updateTag(`cafe:${CAFE_SLUG}`);
+  updateTag("cafes");
   for (const path of ["/admin", "/admin/hours", "/admin/specials", "/admin/details", "/admin/photos"]) {
     revalidatePath(path);
   }
@@ -64,7 +64,7 @@ export async function addSpecialDate(formData: FormData) {
   const { error } = await sb.from("special_dates").insert({
     cafe_id: cafeId,
     date,
-    note: text(formData, "note") || null,
+    note: clip(text(formData, "note"), 60, "Note") || null,
     closed: formData.get("closed") === "on",
   });
   if (error) fail(error.message);
@@ -85,7 +85,7 @@ export async function saveSpecial(formData: FormData) {
   const { sb, cafeId, allowed } = await requireAdmin();
   if (!allowed || !cafeId) fail("Not an admin of this café");
 
-  const body = text(formData, "text");
+  const body = clip(text(formData, "text"), 140, "Banner text");
   const starts = text(formData, "starts_on");
   const ends = text(formData, "ends_on");
   if (starts && ends && starts > ends) fail("The end date must be on or after the start date.");
@@ -112,20 +112,20 @@ export async function saveDetails(formData: FormData) {
   const { sb, cafeId, allowed } = await requireAdmin();
   if (!allowed || !cafeId) fail("Not an admin of this café");
 
-  const name = text(formData, "name");
+  const name = clip(text(formData, "name"), 60, "Café name");
   if (!name) fail("The café needs a name.");
 
   const { error } = await sb
     .from("cafes")
     .update({
       name,
-      tagline: text(formData, "tagline") || null,
-      about: text(formData, "about") || null,
-      phone: text(formData, "phone") || null,
-      address: text(formData, "address") || null,
-      map_url: text(formData, "map_url") || null,
-      instagram_url: text(formData, "instagram_url") || null,
-      facebook_url: text(formData, "facebook_url") || null,
+      tagline: clip(text(formData, "tagline"), 100, "Tagline") || null,
+      about: clip(text(formData, "about"), 600, "About") || null,
+      phone: clip(text(formData, "phone"), 30, "Phone") || null,
+      address: clip(text(formData, "address"), 120, "Address") || null,
+      map_url: clip(text(formData, "map_url"), 300, "Directions link") || null,
+      instagram_url: clip(text(formData, "instagram_url"), 200, "Instagram link") || null,
+      facebook_url: clip(text(formData, "facebook_url"), 200, "Facebook link") || null,
     })
     .eq("id", cafeId);
   if (error) fail(error.message);
@@ -150,6 +150,10 @@ async function uploadPhoto(
   ext: string,
   label: string,
 ) {
+  // The demo café doesn't accept uploads. The storage policy blocks it too; this gives a clear message.
+  const { data: owner } = await sb.from("cafes").select("slug").eq("id", cafeId).single();
+  if (owner?.slug === DEMO_SLUG) fail("Photo uploads are turned off in the demo.");
+
   const path = `${cafeId}/${label}-${Date.now()}.${ext}`;
   const { error } = await sb.storage.from(BUCKET).upload(path, file, {
     contentType: file.type,

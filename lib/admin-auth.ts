@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { serverSupabase } from "@/lib/supabase-server";
-import { CAFE_SLUG } from "@/lib/cafe";
 
-// Returns a session-bound client and the café id, or sends the visitor to the login page.
-// Also checks that the signed-in user is listed in cafe_admins for this café.
+export const DEMO_SLUG = "westward-demo";
+
+// Returns a session-bound client and the café this user administers, or sends the
+// visitor to the login page. Row-level security still applies to every query made with `sb`.
 export async function requireAdmin() {
   const sb = await serverSupabase();
   const {
@@ -11,17 +12,43 @@ export async function requireAdmin() {
   } = await sb.auth.getUser();
   if (!user) redirect("/admin/login");
 
-  const { data: cafe } = await sb.from("cafes").select("id, name").eq("slug", CAFE_SLUG).single();
-  if (!cafe) throw new Error("Café not found");
+  // Which café does this login administer? (The owner has the main café; the demo login has the demo copy.)
+  const { data: link } = await sb
+    .from("cafe_admins")
+    .select("cafe_id, cafes(slug, name)")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
+
+  const cafe = link?.cafes as unknown as { slug: string; name: string } | null | undefined;
+  if (!link || !cafe) {
+    return { sb, user, allowed: false as const, cafeId: null as string | null, cafeName: "", cafeSlug: "", isDemo: false };
+  }
+  return {
+    sb,
+    user,
+    allowed: true as const,
+    cafeId: link.cafe_id as string,
+    cafeName: cafe.name,
+    cafeSlug: cafe.slug,
+    isDemo: cafe.slug === DEMO_SLUG,
+  };
+}
+
+// For the admin's demo strip: who's signed in and is it the demo login? Never redirects.
+export async function currentDemoStatus() {
+  const sb = await serverSupabase();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (!user) return { signedIn: false, isDemo: false };
 
   const { data: link } = await sb
     .from("cafe_admins")
-    .select("cafe_id")
-    .eq("cafe_id", cafe.id)
+    .select("cafes(slug)")
     .eq("user_id", user.id)
+    .limit(1)
     .maybeSingle();
-  if (!link) {
-    return { sb, user, cafeId: null as string | null, cafeName: cafe.name, allowed: false as const };
-  }
-  return { sb, user, cafeId: cafe.id as string, cafeName: cafe.name, allowed: true as const };
+  const cafe = link?.cafes as unknown as { slug: string } | null | undefined;
+  return { signedIn: true, isDemo: cafe?.slug === DEMO_SLUG };
 }

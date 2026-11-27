@@ -22,7 +22,7 @@ export default function PhotosPage() {
 
 async function PhotosEditor() {
   await connection();
-  const { sb, cafeId, allowed } = await requireAdmin();
+  const { sb, cafeId, allowed, isDemo } = await requireAdmin();
   if (!allowed || !cafeId) return <NoAccess />;
 
   const { data: cafe } = await sb
@@ -52,12 +52,16 @@ async function PhotosEditor() {
           )}
         </div>
 
+        {isDemo ? (
+          <p className="mt-4 text-sm text-espresso/70">Photo uploads are turned off in the demo.</p>
+        ) : (
         <form action={setHeroPhoto} className="mt-4 flex flex-col gap-3">
           <FilePicker name="photo" accept="image/jpeg,image/png,image/webp" buttonLabel="Choose hero photo" required />
           <div>
             <SaveButton label="Upload hero photo" savedLabel="Hero updated ✓" className={adminButton} />
           </div>
         </form>
+        )}
       </section>
 
       <section className="mt-10">
@@ -87,12 +91,16 @@ async function PhotosEditor() {
           ))}
         </ul>
 
+        {isDemo ? (
+          <p className="mt-4 text-sm text-espresso/70">Photo uploads are turned off in the demo.</p>
+        ) : (
         <form action={addGalleryPhoto} className="mt-4 flex flex-col gap-3 rounded-xl border border-dashed border-espresso/30 p-4">
           <FilePicker name="photo" accept="image/jpeg,image/png,image/webp" buttonLabel="Choose photo" required />
           <div>
             <SaveButton label="Add to gallery" savedLabel="Photo added ✓" className={adminButton} />
           </div>
         </form>
+        )}
         <p className="mt-2 text-xs text-espresso/60">JPG, PNG or WebP, up to 50 MB each.</p>
       </section>
     </>

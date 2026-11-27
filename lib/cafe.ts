@@ -64,12 +64,14 @@ export type Cafe = {
   gallery_images: GalleryImage[];
 };
 
-// Cached per café. Saves in the admin call revalidateTag(`cafe:${slug}`) so the page
-// rebuilds straight away; nothing else needs to expire.
+// Cached per café. Saves in the admin call updateTag("cafes"), so the page refreshes straight away.
+// Every café shares the "cafes" tag, so any save (or the nightly demo reset) refreshes them.
+// The cache also goes stale after a minute, so the nightly reset appears even though
+// the cron job can't call revalidation itself.
 export async function getCafe(slug: string): Promise<Cafe | null> {
   "use cache";
-  cacheTag(`cafe:${slug}`);
-  cacheLife("max");
+  cacheTag("cafes", `cafe:${slug}`);
+  cacheLife({ revalidate: 60, expire: 3600 });
 
   const { data, error } = await publicSupabase()
     .from("cafes")

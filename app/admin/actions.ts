@@ -3,7 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
-import { CAFE_SLUG } from "@/lib/cafe";
+import { clip } from "@/lib/limits";
 import { serverSupabase } from "@/lib/supabase-server";
 
 function text(formData: FormData, key: string) {
@@ -19,7 +19,7 @@ function parsePrice(raw: string): number | null {
 
 // Make the public café page rebuild the next time it's read, and refresh the editor.
 function publish() {
-  updateTag(`cafe:${CAFE_SLUG}`);
+  updateTag("cafes");
   revalidatePath("/admin");
 }
 
@@ -50,7 +50,7 @@ export async function signOut() {
 export async function addSection(formData: FormData) {
   const { sb, cafeId, allowed } = await requireAdmin();
   if (!allowed || !cafeId) fail("Not an admin of this café");
-  const name = text(formData, "name");
+  const name = clip(text(formData, "name"), 60, "Name");
   if (!name) return;
 
   const { data: last } = await sb
@@ -71,7 +71,7 @@ export async function addSection(formData: FormData) {
 export async function renameSection(formData: FormData) {
   const { sb, allowed } = await requireAdmin();
   if (!allowed) fail("Not an admin of this café");
-  const name = text(formData, "name");
+  const name = clip(text(formData, "name"), 60, "Name");
   if (!name) return;
   const { error } = await sb.from("menu_sections").update({ name }).eq("id", text(formData, "id"));
   if (error) fail(error.message);
@@ -101,7 +101,7 @@ export async function moveSection(formData: FormData) {
 export async function addItem(formData: FormData) {
   const { sb, allowed } = await requireAdmin();
   if (!allowed) fail("Not an admin of this café");
-  const name = text(formData, "name");
+  const name = clip(text(formData, "name"), 60, "Name");
   if (!name) return;
   const sectionId = text(formData, "section_id");
 
@@ -116,7 +116,7 @@ export async function addItem(formData: FormData) {
   const { error } = await sb.from("menu_items").insert({
     section_id: sectionId,
     name,
-    description: text(formData, "description") || null,
+    description: clip(text(formData, "description"), 160, "Description") || null,
     price: parsePrice(text(formData, "price")),
     sold_out: false,
     position: (last?.position ?? -1) + 1,
@@ -128,13 +128,13 @@ export async function addItem(formData: FormData) {
 export async function saveItem(formData: FormData) {
   const { sb, allowed } = await requireAdmin();
   if (!allowed) fail("Not an admin of this café");
-  const name = text(formData, "name");
+  const name = clip(text(formData, "name"), 60, "Name");
   if (!name) return;
   const { error } = await sb
     .from("menu_items")
     .update({
       name,
-      description: text(formData, "description") || null,
+      description: clip(text(formData, "description"), 160, "Description") || null,
       price: parsePrice(text(formData, "price")),
     })
     .eq("id", text(formData, "id"));
