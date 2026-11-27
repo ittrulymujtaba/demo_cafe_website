@@ -93,7 +93,9 @@ async function PhotosEditor() {
           </div>
         </form>
         )}
-        <p className="mt-2 text-xs text-espresso/60">JPG, PNG or WebP, up to 50 MB each.</p>
+        <p className="mt-2 text-xs text-espresso/60">
+          JPG, PNG or WebP, up to 10 MB each. Phone photos are resized to 2000 px before upload, so they load quickly on the site.
+        </p>
       </section>
     </>
   );

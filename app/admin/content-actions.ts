@@ -5,7 +5,9 @@ import { DEMO_SLUG, requireAdmin } from "@/lib/admin-auth";
 import { clip } from "@/lib/limits";
 
 const BUCKET = "cafe-photos";
-const MAX_PHOTO_BYTES = 50 * 1024 * 1024; // Supabase's default per-file cap on the free plan
+// Photos are shrunk in the browser before upload (see components/file-picker.tsx),
+// so this cap only needs to catch files that didn't go through the picker.
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const PHOTO_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -139,7 +141,7 @@ function photoFile(formData: FormData): { file: File; ext: string } {
   if (!(file instanceof File) || file.size === 0) fail("Choose a photo to upload.");
   const ext = PHOTO_TYPES[file.type];
   if (!ext) fail("Photos must be JPG, PNG or WebP.");
-  if (file.size > MAX_PHOTO_BYTES) fail("Photos must be 50 MB or smaller.");
+  if (file.size > MAX_PHOTO_BYTES) fail("Photos must be 10 MB or smaller.");
   return { file, ext };
 }
 
